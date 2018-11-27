@@ -34,6 +34,7 @@ public:
 	ASTNode(size_t lineIn, size_t colIn){
 		this->line = lineIn;
 		this->col = colIn;
+		has_main = false;
 	}
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
@@ -44,7 +45,7 @@ public:
 	}
 	virtual size_t getLine(){ return line; }
 	virtual size_t getCol(){ return col; }
-	virtual std::string getPosition() { 
+	virtual std::string getPosition() {
 		std::string res = "";
 		res += std::to_string(getLine());
 		res += ":";
@@ -52,9 +53,11 @@ public:
 		//res += std::string(1, getCol());
 		return res;
 	}
+	virtual bool hasMain() {return has_main;}
 protected:
 	size_t line;
 	size_t col;
+	bool has_main;
 };
 
 class ProgramNode : public ASTNode{
@@ -65,7 +68,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) override;
 	bool typeAnalysis() override;
 	virtual bool codeGen();
-	
+
 	void unparse(std::ostream& out, int indent) override;
 	virtual ~ProgramNode(){ }
 private:
@@ -74,11 +77,11 @@ private:
 
 class TypeNode : public ASTNode{
 public:
-	TypeNode(size_t lineIn, size_t colIn) 
+	TypeNode(size_t lineIn, size_t colIn)
 	: ASTNode(lineIn, colIn){ }
-	virtual void unparse(std::ostream& out, int indent) 
+	virtual void unparse(std::ostream& out, int indent)
 		override = 0;
-	virtual bool nameAnalysis(SymbolTable * symTab) 
+	virtual bool nameAnalysis(SymbolTable * symTab)
 		override = 0;
 	virtual std::string getTypeString() = 0;
 	virtual bool isVoid(){ return false; }
@@ -86,7 +89,7 @@ public:
 protected:
 	size_t line;
 	size_t col;
-	
+
 };
 
 
@@ -109,9 +112,9 @@ private:
 class ExpNode : public ASTNode{
 public:
 	ExpNode(size_t lIn, size_t cIn) : ASTNode(lIn, cIn){ }
-	virtual void unparse(std::ostream& out, int indent) 
+	virtual void unparse(std::ostream& out, int indent)
 		override = 0;
-	virtual bool nameAnalysis(SymbolTable * symTab) 
+	virtual bool nameAnalysis(SymbolTable * symTab)
 		override = 0;
 	virtual std::string expTypeAnalysis() = 0;
 	virtual StructSymbol * dotNameAnalysis(
@@ -119,13 +122,13 @@ public:
 	) {
 		throw runtime_error("INTERNAL: Attempted "
 			"dotNameAnalysis on a non-struct "
-			"expression type"); 
+			"expression type");
 	}
 };
 
 class IdNode : public ExpNode{
 public:
-	IdNode(IDToken * token) 
+	IdNode(IDToken * token)
 	: ExpNode(token->line, token->column){
 		if (token->line == 0){
 			throw InternalError("bad token pos");
@@ -150,16 +153,16 @@ private:
 
 class DeclNode : public ASTNode{
 public:
-	DeclNode(size_t lIn, size_t cIn, IdNode * id) 
-	: ASTNode(lIn, cIn) { 
-		this->myDeclaredID = id; 
-	} 
+	DeclNode(size_t lIn, size_t cIn, IdNode * id)
+	: ASTNode(lIn, cIn) {
+		this->myDeclaredID = id;
+	}
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
 	virtual bool typeAnalysis();
 	virtual std::string getTypeString() = 0;
-	virtual std::string getName() { 
-		return myDeclaredID->getString(); 
+	virtual std::string getName() {
+		return myDeclaredID->getString();
 	}
 	virtual IdNode * getDeclaredID() { return myDeclaredID; }
 	virtual DeclKind getKind() = 0;
@@ -178,7 +181,7 @@ public:
 
 class FormalsListNode : public ASTNode{
 public:
-	FormalsListNode(std::list<FormalDeclNode *> * formalsIn) 
+	FormalsListNode(std::list<FormalDeclNode *> * formalsIn)
 	: ASTNode(0, 0){
 		myFormals = formalsIn;
 	}
@@ -236,10 +239,10 @@ private:
 class FnDeclNode : public DeclNode{
 public:
 	FnDeclNode(
-		TypeNode * type, 
-		IdNode * id, 
-		FormalsListNode * formals, 
-		FnBodyNode * fnBody) 
+		TypeNode * type,
+		IdNode * id,
+		FormalsListNode * formals,
+		FnBodyNode * fnBody)
 		: DeclNode(type->getLine(), type->getCol(), id)
 	{
 		myRetType = type;
@@ -252,7 +255,7 @@ public:
 	bool typeAnalysis() override;
 	virtual std::string getTypeString() override;
 	VarSymbol * makeRetSymbol(SymbolTable * symTab);
-	virtual DeclKind getKind() override { return DeclKind::FUNC; } 
+	virtual DeclKind getKind() override { return DeclKind::FUNC; }
 
 private:
 	TypeNode * myRetType;
@@ -264,7 +267,7 @@ private:
 
 class FormalDeclNode : public DeclNode{
 public:
-	FormalDeclNode(TypeNode * type, IdNode * id) 
+	FormalDeclNode(TypeNode * type, IdNode * id)
 	: DeclNode(type->getLine(), type->getCol(), id){
 		myType = type;
 	}
@@ -272,9 +275,9 @@ public:
 	virtual bool nameAnalysis(SymbolTable * symTab) override;
 	VarSymbol * getSymbol();
 	virtual std::string getTypeString() override;
-	virtual DeclKind getKind() override { 
-		return DeclKind::FORMAL; 
-	} 
+	virtual DeclKind getKind() override {
+		return DeclKind::FORMAL;
+	}
 
 private:
 	TypeNode * myType;
@@ -283,17 +286,17 @@ private:
 
 class StructDeclNode : public DeclNode{
 public:
-	StructDeclNode(size_t lIn, size_t cIn, 
-		IdNode * id, DeclListNode * decls ) 
+	StructDeclNode(size_t lIn, size_t cIn,
+		IdNode * id, DeclListNode * decls )
 	: DeclNode(id->getLine(), id->getCol(), id){
 		myDeclList = decls;
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
 	virtual std::string getTypeString() override;
-	virtual DeclKind getKind() override { 
+	virtual DeclKind getKind() override {
 		return DeclKind::STRUCT;
-	} 
+	}
 	static const int NOT_STRUCT = -1; //Use this value for mySize
 					  // if this is not a struct type
 private:
@@ -319,9 +322,9 @@ public:
 
 class VoidNode : public TypeNode{
 public:
-	VoidNode(size_t lIn, size_t cIn) : TypeNode(lIn, cIn){ } 
+	VoidNode(size_t lIn, size_t cIn) : TypeNode(lIn, cIn){ }
 	void unparse(std::ostream& out, int indent) override;
-	bool nameAnalysis(SymbolTable * symTab) 
+	bool nameAnalysis(SymbolTable * symTab)
 		override { return true; }
 	std::string getTypeString() override { return "void"; }
 	virtual bool isVoid() override { return true; }
@@ -329,11 +332,11 @@ public:
 
 class StructNode : public TypeNode{
 public:
-	StructNode(IdNode * id, size_t lIn, size_t cIn) 
-	: TypeNode(lIn, cIn) 
+	StructNode(IdNode * id, size_t lIn, size_t cIn)
+	: TypeNode(lIn, cIn)
 	{
-		if (id == nullptr){ 
-			throw std::runtime_error("null ID"); 
+		if (id == nullptr){
+			throw std::runtime_error("null ID");
 		}
 		myId = id;
 	}
@@ -415,7 +418,7 @@ private:
 class AssignNode : public ExpNode{
 public:
 	AssignNode(
-		size_t lIn, size_t cIn, 
+		size_t lIn, size_t cIn,
 		ExpNode * expLHS, ExpNode * expRHS)
 	: ExpNode(lIn, cIn){
 		myExpLHS = expLHS;
@@ -449,7 +452,7 @@ private:
 
 class UnaryExpNode : public ExpNode {
 public:
-	UnaryExpNode(size_t lIn, size_t cIn, ExpNode * expIn) 
+	UnaryExpNode(size_t lIn, size_t cIn, ExpNode * expIn)
 	: ExpNode(lIn, cIn){
 		this->myExp = expIn;
 	}
@@ -481,7 +484,7 @@ public:
 class BinaryExpNode : public ExpNode{
 public:
 	BinaryExpNode(
-		size_t lIn, size_t cIn, 
+		size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: ExpNode(lIn, cIn) {
 		this->myExp1 = exp1;
@@ -489,8 +492,8 @@ public:
 	}
 	virtual void unparse(std::ostream& out, int indent)
 		override;
-	virtual bool nameAnalysis(SymbolTable * symTab) 
-		override 
+	virtual bool nameAnalysis(SymbolTable * symTab)
+		override
 	{
 		bool result1 = myExp1->nameAnalysis(symTab);
 		return myExp2->nameAnalysis(symTab) && result1;
@@ -508,20 +511,20 @@ protected:
 
 class PlusNode : public BinaryExpNode{
 public:
-	PlusNode(size_t lIn, size_t cIn, 
-		ExpNode * exp1, ExpNode * exp2) 
+	PlusNode(size_t lIn, size_t cIn,
+		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lIn, cIn, exp1, exp2) { }
-	virtual std::string myOp(){ return "+"; } 
+	virtual std::string myOp(){ return "+"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
 };
 
 class MinusNode : public BinaryExpNode{
 public:
-	MinusNode(size_t lIn, size_t cIn, 
+	MinusNode(size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lIn, cIn, exp1, exp2){ }
-	virtual std::string myOp(){ return "-"; } 
+	virtual std::string myOp(){ return "-"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
 };
@@ -531,7 +534,7 @@ public:
 	TimesNode(size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(line, col, exp1, exp2){ }
-	virtual std::string myOp(){ return "*"; } 
+	virtual std::string myOp(){ return "*"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
 };
@@ -541,85 +544,85 @@ public:
 	DivideNode(size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(line, col, exp1, exp2){ }
-	virtual std::string myOp(){ return "/"; } 
-	BinOpKind binOpKind() override 
+	virtual std::string myOp(){ return "/"; }
+	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
 };
 
 class AndNode : public BinaryExpNode{
 public:
-	AndNode(size_t lIn, size_t cIn, 
+	AndNode(size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lIn, cIn, exp1, exp2){ }
-	virtual std::string myOp(){ return "&&"; } 
-	BinOpKind binOpKind() override 
+	virtual std::string myOp(){ return "&&"; }
+	BinOpKind binOpKind() override
 		{ return BinOpKind::LOG; }
 };
 
 class OrNode : public BinaryExpNode{
 public:
-	OrNode(size_t lIn, size_t cIn, 
+	OrNode(size_t lIn, size_t cIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lIn, cIn, exp1, exp2){ }
-	virtual std::string myOp() override { return "||"; } 
-	BinOpKind binOpKind() override 
+	virtual std::string myOp() override { return "||"; }
+	BinOpKind binOpKind() override
 		{ return BinOpKind::LOG; }
 };
 
 class EqualsNode : public BinaryExpNode{
 public:
-	EqualsNode(size_t lineIn, size_t colIn, 
+	EqualsNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
-	virtual std::string myOp(){ return "=="; } 
+	virtual std::string myOp(){ return "=="; }
 	BinOpKind binOpKind() override ;
 	std::string expTypeAnalysis();
 };
 
 class NotEqualsNode : public BinaryExpNode{
 public:
-	NotEqualsNode(size_t lineIn, size_t colIn, 
+	NotEqualsNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
-	virtual std::string myOp() override { return "!="; } 
+	virtual std::string myOp() override { return "!="; }
 	BinOpKind binOpKind() override ;
 	std::string expTypeAnalysis();
 };
 
 class LessNode : public BinaryExpNode{
 public:
-	LessNode(size_t lineIn, size_t colIn, 
+	LessNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
-	virtual std::string myOp() override { return "<"; } 
-	virtual BinOpKind binOpKind(){ return BinOpKind::REL; } 
+	virtual std::string myOp() override { return "<"; }
+	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
 };
 
 class GreaterNode : public BinaryExpNode{
 public:
-	GreaterNode(size_t lineIn, size_t colIn, 
+	GreaterNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
-	virtual std::string myOp() override { return ">"; } 
-	virtual BinOpKind binOpKind(){ return BinOpKind::REL; } 
+	virtual std::string myOp() override { return ">"; }
+	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
 };
 
 class LessEqNode : public BinaryExpNode{
 public:
-	LessEqNode(size_t lineIn, size_t colIn, 
+	LessEqNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
-	virtual std::string myOp() override { return "<="; } 
-	virtual BinOpKind binOpKind(){ return BinOpKind::REL; } 
+	virtual std::string myOp() override { return "<="; }
+	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
 };
 
 class GreaterEqNode : public BinaryExpNode{
 public:
-	GreaterEqNode(size_t lineIn, size_t colIn, 
+	GreaterEqNode(size_t lineIn, size_t colIn,
 		ExpNode * exp1, ExpNode * exp2)
 	: BinaryExpNode(line, col, exp1, exp2){ }
-	virtual std::string myOp() override { return ">="; } 
-	virtual BinOpKind binOpKind(){ return BinOpKind::REL; } 
+	virtual std::string myOp() override { return ">="; }
+	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
 };
 
 class AssignStmtNode : public StmtNode{
@@ -642,7 +645,7 @@ public:
 	: StmtNode(exp->getLine(), exp->getCol()){
 		if (exp->getLine() == 0){
 			throw InternalError("0 pos");
-		}	
+		}
 		myExp = exp;
 	}
 	void unparse(std::ostream& out, int indent);
@@ -695,7 +698,7 @@ private:
 
 class IfStmtNode : public StmtNode{
 public:
-	IfStmtNode(size_t lineIn, size_t colIn, ExpNode * exp, 
+	IfStmtNode(size_t lineIn, size_t colIn, ExpNode * exp,
 	  DeclListNode * decls, StmtListNode * stmts)
 	: StmtNode(lineIn, colIn){
 		myExp = exp;
@@ -713,8 +716,8 @@ private:
 
 class IfElseStmtNode : public StmtNode{
 public:
-	IfElseStmtNode(ExpNode * exp, 
-	  DeclListNode * declsT, StmtListNode * stmtsT, 
+	IfElseStmtNode(ExpNode * exp,
+	  DeclListNode * declsT, StmtListNode * stmtsT,
 	  DeclListNode * declsF, StmtListNode * stmtsF)
 	: StmtNode(exp->getLine(), exp->getCol()){
 		myExp = exp;
@@ -736,7 +739,7 @@ private:
 
 class WhileStmtNode : public StmtNode{
 public:
-	WhileStmtNode(size_t lineIn, size_t colIn, 
+	WhileStmtNode(size_t lineIn, size_t colIn,
 	ExpNode * exp, DeclListNode * decls, StmtListNode * stmts)
 	: StmtNode(lineIn, colIn){
 		myExp = exp;
@@ -782,7 +785,7 @@ private:
 
 class VarDeclNode : public DeclNode{
 public:
-	VarDeclNode(TypeNode * type, IdNode * id, int size) 
+	VarDeclNode(TypeNode * type, IdNode * id, int size)
 	: DeclNode(id->getLine(), id->getCol(), id){
 		myType = type;
 		mySize = size;
@@ -790,7 +793,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) override;
 	void unparse(std::ostream& out, int indent) override;
 	virtual std::string getTypeString() override;
-	virtual DeclKind getKind() override { return DeclKind::VAR; } 
+	virtual DeclKind getKind() override { return DeclKind::VAR; }
 	static const int NOT_STRUCT = -1; //Use this value for mySize
 					  // if this is not a struct type
 private:

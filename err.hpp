@@ -7,8 +7,8 @@ namespace LILC{
 
 class Err{
 	public:
-	static void report(std::string pos, std::string msg){ 
-		std::cerr << pos 
+	static void report(std::string pos, std::string msg){
+		std::cerr << pos
 			<< " ***ERROR*** " << msg << std::endl;
 	}
 
@@ -41,7 +41,10 @@ class Err{
 		report(pos, "Invalid struct field name");
 		return false;
 	}
-
+	static std::string noMain(std::string pos) {
+		Err::report(pos, "No main function");
+		return "ERROR";
+	}
 };
 
 class TypeErr{
