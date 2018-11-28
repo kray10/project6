@@ -6,7 +6,7 @@ namespace LILC{
 
 bool ProgramNode::nameAnalysis(SymbolTable * symTab){
 	symTab->enterScope();
-	bool valid = this->myDeclList->nameAnalysis(symTab);
+	bool valid = this->myDeclList->globalNameAnalysis(symTab);
 	symTab->exitScope();
 	if (!myDeclList->hasMain()) {
 		Err::noMain("0,0");
@@ -26,7 +26,44 @@ bool DeclListNode::nameAnalysis(SymbolTable * symTab){
 	for (DeclNode * decl : *myDecls){
 		bool thisResult = decl->nameAnalysis(symTab);
 		result = thisResult && result;
+	}
+
+	return result;
+}
+
+bool DeclListNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset){
+	bool result = true;
+	//Note: Like many of the nameAnalysis functions for
+	// list nodes, the below uses the "enhanced for loop"
+	// introduced in C++11. It works just like an iterator
+	// over the list. The below iterates over every
+	// element in the list pointed to by myDecls, with the
+	// iteration variable named decl.
+	offset = offset * -1;
+	for (DeclNode * decl : *myDecls){
+		bool thisResult = decl->nameAnalysis(symTab);
+		result = thisResult && result;
 		has_main = decl->hasMain() || has_main;
+		if (result) {symTab->lookup(decl->getName())->setOffset(offset);}
+		offset = offset - 4;
+	}
+
+	return result;
+}
+
+bool DeclListNode::globalNameAnalysis(SymbolTable * symTab){
+	bool result = true;
+	//Note: Like many of the nameAnalysis functions for
+	// list nodes, the below uses the "enhanced for loop"
+	// introduced in C++11. It works just like an iterator
+	// over the list. The below iterates over every
+	// element in the list pointed to by myDecls, with the
+	// iteration variable named decl.
+	for (DeclNode * decl : *myDecls){
+		bool thisResult = decl->nameAnalysis(symTab);
+		result = thisResult && result;
+		has_main = decl->hasMain() || has_main;
+		if (result) {symTab->lookup(decl->getName())->setGlobal(true);}
 	}
 
 	return result;
@@ -159,12 +196,14 @@ bool FnDeclNode::nameAnalysis(SymbolTable * symTab){
 		FuncSymbol * entry = new FuncSymbol(
 			argsSymbols, retSymbol
 		);
+		entry->setFormalsSize(myFormals->offsetSize());
+		entry->setLocalsSize(myBody->getLocalsSize());
 		outerScope->add(name, entry);
 		myId->setSymbol(entry);
 		ok = true;
 	}
 
-	ok = myBody->nameAnalysis(symTab) && ok;
+	ok = myBody->nameAnalysisWithOffset(symTab, myFormals->offsetSize() + 8) && ok;
 	symTab->exitScope();
 	if (myId->getString() == "main") {
 		has_main = true;
@@ -175,8 +214,11 @@ bool FnDeclNode::nameAnalysis(SymbolTable * symTab){
 bool FormalsListNode::nameAnalysis(SymbolTable * symTab) {
 	bool valid = true;
 	if (myFormals != nullptr) {
+		int offset = 0;
 		for (FormalDeclNode * decl : *myFormals) {
 			valid = decl->nameAnalysis(symTab) && valid;
+			if (valid) {decl->getSymbol()->setOffset(offset);}
+			offset = offset - 4;
 		}
 	}
 	return valid;
@@ -200,6 +242,13 @@ bool FormalDeclNode::nameAnalysis(SymbolTable * symTab) {
 bool FnBodyNode::nameAnalysis(SymbolTable * symTab) {
 	bool result = true;
 	result = myDeclList->nameAnalysis(symTab) && result;
+	result = myStmtList->nameAnalysis(symTab) && result;
+	return result;
+}
+
+bool FnBodyNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
+	bool result = true;
+	result = myDeclList->nameAnalysisWithOffset(symTab, offset) && result;
 	result = myStmtList->nameAnalysis(symTab) && result;
 	return result;
 }

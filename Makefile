@@ -8,7 +8,7 @@ EXTRA_CXXFLAGS=-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-priv
 
 BISON = bison
 
-CPP_SRCS := $(wildcard *.cpp) 
+CPP_SRCS := $(wildcard *.cpp)
 PARSER_NAME := lilc_parser
 LEXER_NAME := lilc_lexer
 DEPS := $(PARSER_NAME).d $(LEXER_NAME).d $(CPP_SRCS:.cpp=.d)
@@ -16,7 +16,7 @@ OBJ_SRCS := $(DEPS:.d=.o)
 
 .PHONY: all clean
 
-all: 
+all:
 	make $(EXE)
 
 clean:
@@ -27,7 +27,7 @@ clean:
 $(EXE): $(OBJ_SRCS)
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $(EXE) $(OBJ_SRCS)
 
-%.o: %.cpp 
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -MMD -MP -c $< -o $@
 
 lilc_parser.cc: lilc.yy

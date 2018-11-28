@@ -1,3 +1,18 @@
-void fn(){
-	//(3+4)++;
+bool a;
+void main() {
+  bool b;
+
+  a = true;
+  b = false;
+
+  if (b) {
+    cout << "error\n";
+  }else {
+    cout << "in else\n";
+  }
+  if (a) {
+    cout << "in if\n";
+  } else {
+    cout << "error\n";
+  }
 }

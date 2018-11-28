@@ -85,14 +85,14 @@ const char * outfile )
 			{
 			IntLitToken * tok = static_cast<IntLitToken *>(
 				lexeme.tokenValue);
-			out << "INTLIT:" << tok->value() << std::endl;	
+			out << "INTLIT:" << tok->value() << std::endl;
 			break;
 			}
 		case TokenTag::STRINGLITERAL:
 			{
 			StringLitToken * tok = static_cast<StringLitToken *>(
 				lexeme.tokenValue);
-			out << "STRINGLIT:" << tok->value() << std::endl;	
+			out << "STRINGLIT:" << tok->value() << std::endl;
 			break;
 			}
 		case TokenTag::LCURLY:
@@ -186,19 +186,19 @@ LILC::LilC_Compiler::parse( const char * const infile) {
 	std::cerr << "bad input stream " << infile << std::endl;
        exit( EXIT_FAILURE );
    }
-   
+
    delete(scanner);
    scanner = new LILC::LilC_Scanner( &in_stream );
-   delete(parser); 
+   delete(parser);
    delete(astRoot);
    try
    {
-      parser = new LILC::LilC_Parser( (*scanner) /* scanner */, 
+      parser = new LILC::LilC_Parser( (*scanner) /* scanner */,
                                   (*this) /* compiler */ );
    }
    catch( std::bad_alloc &ba )
    {
-      std::cerr << "Failed to allocate parser: (" << 
+      std::cerr << "Failed to allocate parser: (" <<
          ba.what() << "), exiting!!\n";
       exit( EXIT_FAILURE );
    }
@@ -215,7 +215,7 @@ bool LILC::LilC_Compiler::nameAnalysis(const char * const inF){
 	if (!this->parse(inF)){ return false; }
 	delete( symbolTable);
 	symbolTable = new SymbolTable();
-	
+
 	if (!this->astRoot->nameAnalysis(symbolTable)){
 		std::cerr << "Failed nameAnalysis!" << std::endl;
 		return false;

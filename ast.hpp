@@ -6,6 +6,7 @@
 #include "err.hpp"
 #include "tokens.hpp"
 #include "symbol_table.hpp"
+#include "lilc_mips.hpp"
 
 enum BinOpKind { REL, LOG, MATH, EQ};
 
@@ -39,7 +40,7 @@ public:
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
 	virtual bool typeAnalysis();
-	virtual bool codeGen();
+	virtual bool codeGen(LilC_Backend* backend);
 	void doIndent(std::ostream& out, int indent){
 		for (int k = 0 ; k < indent; k++){ out << " "; }
 	}
@@ -67,8 +68,7 @@ public:
 	}
 	bool nameAnalysis(SymbolTable * symTab) override;
 	bool typeAnalysis() override;
-	virtual bool codeGen();
-
+	virtual bool codeGen(LilC_Backend* backend);
 	void unparse(std::ostream& out, int indent) override;
 	virtual ~ProgramNode(){ }
 private:
@@ -100,8 +100,13 @@ public:
 	}
 	FieldMap * fieldNameAnalysis(SymbolTable * symTab);
 	bool nameAnalysis(SymbolTable * symTab);
+	bool nameAnalysisWithOffset(SymbolTable* symTab, int offset);
+	bool setLocalOffsets(SymbolTable* symTab, int offset);
+	bool globalNameAnalysis(SymbolTable * symTab);
+	bool codeGen(LilC_Backend* backend);
 	bool typeAnalysis();
 	void unparse(std::ostream& out, int indent);
+	int sizeOfDecls() {return myDecls->size() * 4;}
 private:
 	std::list<DeclNode *> * myDecls;
 	bool fieldNameAnalysis(SymbolTable * symTab, FieldMap * m);
@@ -117,12 +122,18 @@ public:
 	virtual bool nameAnalysis(SymbolTable * symTab)
 		override = 0;
 	virtual std::string expTypeAnalysis() = 0;
+	virtual bool codeGen(LilC_Backend* backend) {
+		throw runtime_error("ExpNode not implemented");
+	}
 	virtual StructSymbol * dotNameAnalysis(
 		SymbolTable * symTab
 	) {
 		throw runtime_error("INTERNAL: Attempted "
 			"dotNameAnalysis on a non-struct "
 			"expression type");
+	}
+	virtual bool genAddr(LilC_Backend* backend) {
+		throw runtime_error("ExpNode not implemented");
 	}
 };
 
@@ -137,6 +148,8 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
+	bool genAddr(LilC_Backend* backend) override;
+	bool codeGen(LilC_Backend* backend) override;
 	StructSymbol * dotNameAnalysis(
 		SymbolTable * symTab) override;
 	std::string expTypeAnalysis() override;
@@ -160,6 +173,7 @@ public:
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
 	virtual bool typeAnalysis();
+	virtual bool globalCodeGen(LilC_Backend* backend) = 0;
 	virtual std::string getTypeString() = 0;
 	virtual std::string getName() {
 		return myDeclaredID->getString();
@@ -177,6 +191,9 @@ public:
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
 	virtual bool stmtTypeAnalysis(FuncSymbol * fnSym) = 0;
+	virtual bool codeGen(LilC_Backend* backend) {
+		throw runtime_error("Stmt Not implemented");
+	}
 };
 
 class FormalsListNode : public ASTNode{
@@ -189,6 +206,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab);
 	std::list<VarSymbol *> * getSymbols();
 	virtual std::string getTypeString();
+	int offsetSize() {return myFormals->size() * 4;}
 
 private:
 	std::list<FormalDeclNode *> * myFormals;
@@ -214,6 +232,7 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
+	bool codeGen(LilC_Backend* backend) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym);
 
 private:
@@ -228,7 +247,10 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
+	bool nameAnalysisWithOffset(SymbolTable* symTab, int offset);
+	bool codeGen(LilC_Backend* backend) override;
 	virtual bool fnTypeAnalysis(FuncSymbol * fnSym);
+	int getLocalsSize() {return myDeclList->sizeOfDecls();}
 
 private:
 	DeclListNode * myDeclList;
@@ -252,6 +274,7 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	virtual bool nameAnalysis(SymbolTable * symTab) override;
+	virtual bool globalCodeGen(LilC_Backend* backend) override;
 	bool typeAnalysis() override;
 	virtual std::string getTypeString() override;
 	VarSymbol * makeRetSymbol(SymbolTable * symTab);
@@ -273,6 +296,7 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	virtual bool nameAnalysis(SymbolTable * symTab) override;
+	virtual bool globalCodeGen(LilC_Backend* backend) override;
 	VarSymbol * getSymbol();
 	virtual std::string getTypeString() override;
 	virtual DeclKind getKind() override {
@@ -293,6 +317,7 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
+	virtual bool globalCodeGen(LilC_Backend* backend) override;
 	virtual std::string getTypeString() override;
 	virtual DeclKind getKind() override {
 		return DeclKind::STRUCT;
@@ -359,6 +384,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) { return true; }
 	std::string expTypeAnalysis() override;
 	std::string getString() { return std::to_string(myInt); }
+	bool codeGen(LilC_Backend* backend) override;
 private:
 	int myInt;
 };
@@ -373,6 +399,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) { return true; }
 	std::string expTypeAnalysis() override;
 	std::string getString() const { return myString; }
+	bool codeGen(LilC_Backend* backend) override;
 private:
 	 std::string myString;
 };
@@ -385,6 +412,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) { return true; }
 	std::string expTypeAnalysis() override;
 	std::string getString() const { return "true"; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class FalseNode : public ExpNode{
@@ -394,6 +422,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) { return true; }
 	std::string expTypeAnalysis() override;
 	std::string getString() const { return "false"; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class DotAccessNode : public ExpNode{
@@ -427,6 +456,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	std::string expTypeAnalysis() override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	ExpNode * myExpLHS;
@@ -471,6 +501,7 @@ public:
 	: UnaryExpNode(line, col, exp){ }
 	void unparse(std::ostream& out, int indent);
 	std::string expTypeAnalysis() override;
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class NotNode : public UnaryExpNode{
@@ -479,6 +510,7 @@ public:
 	: UnaryExpNode(lIn, cIn, exp){ }
 	void unparse(std::ostream& out, int indent);
 	std::string expTypeAnalysis() override;
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class BinaryExpNode : public ExpNode{
@@ -517,6 +549,7 @@ public:
 	virtual std::string myOp(){ return "+"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class MinusNode : public BinaryExpNode{
@@ -527,6 +560,7 @@ public:
 	virtual std::string myOp(){ return "-"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class TimesNode : public BinaryExpNode{
@@ -537,6 +571,7 @@ public:
 	virtual std::string myOp(){ return "*"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class DivideNode : public BinaryExpNode{
@@ -547,6 +582,7 @@ public:
 	virtual std::string myOp(){ return "/"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::MATH; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class AndNode : public BinaryExpNode{
@@ -557,6 +593,7 @@ public:
 	virtual std::string myOp(){ return "&&"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::LOG; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class OrNode : public BinaryExpNode{
@@ -567,6 +604,7 @@ public:
 	virtual std::string myOp() override { return "||"; }
 	BinOpKind binOpKind() override
 		{ return BinOpKind::LOG; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class EqualsNode : public BinaryExpNode{
@@ -577,6 +615,7 @@ public:
 	virtual std::string myOp(){ return "=="; }
 	BinOpKind binOpKind() override ;
 	std::string expTypeAnalysis();
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class NotEqualsNode : public BinaryExpNode{
@@ -587,6 +626,7 @@ public:
 	virtual std::string myOp() override { return "!="; }
 	BinOpKind binOpKind() override ;
 	std::string expTypeAnalysis();
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class LessNode : public BinaryExpNode{
@@ -596,6 +636,7 @@ public:
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
 	virtual std::string myOp() override { return "<"; }
 	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class GreaterNode : public BinaryExpNode{
@@ -605,6 +646,7 @@ public:
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
 	virtual std::string myOp() override { return ">"; }
 	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class LessEqNode : public BinaryExpNode{
@@ -614,6 +656,7 @@ public:
 	: BinaryExpNode(lineIn, colIn, exp1, exp2){ }
 	virtual std::string myOp() override { return "<="; }
 	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class GreaterEqNode : public BinaryExpNode{
@@ -623,6 +666,7 @@ public:
 	: BinaryExpNode(line, col, exp1, exp2){ }
 	virtual std::string myOp() override { return ">="; }
 	virtual BinOpKind binOpKind(){ return BinOpKind::REL; }
+	bool codeGen(LilC_Backend* backend) override;
 };
 
 class AssignStmtNode : public StmtNode{
@@ -634,6 +678,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	AssignNode * myAssign;
@@ -651,6 +696,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	ExpNode * myExp;
@@ -665,6 +711,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	ExpNode * myExp;
@@ -688,12 +735,15 @@ public:
 	WriteStmtNode(ExpNode * exp)
 	: StmtNode(exp->getLine(), exp->getCol()){
 		myExp = exp;
+		typeToWrite = "";
 	}
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
+	bool codeGen(LilC_Backend* backend) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
 private:
 	ExpNode * myExp;
+	std::string typeToWrite;
 };
 
 class IfStmtNode : public StmtNode{
@@ -708,6 +758,8 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
+
 private:
 	ExpNode * myExp;
 	DeclListNode * myDecls;
@@ -729,6 +781,8 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
+
 private:
 	ExpNode * myExp;
 	DeclListNode * myDeclsT;
@@ -749,6 +803,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+
 private:
 	ExpNode * myExp;
 	DeclListNode * myDecls;
@@ -792,6 +847,7 @@ public:
 	}
 	bool nameAnalysis(SymbolTable * symTab) override;
 	void unparse(std::ostream& out, int indent) override;
+  bool globalCodeGen(LilC_Backend* backend) override;
 	virtual std::string getTypeString() override;
 	virtual DeclKind getKind() override { return DeclKind::VAR; }
 	static const int NOT_STRUCT = -1; //Use this value for mySize

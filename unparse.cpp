@@ -8,7 +8,7 @@ void ProgramNode::unparse(std::ostream& out, int indent){
 }
 
 void DeclListNode::unparse(std::ostream& out, int indent){
-	for (std::list<DeclNode *>::iterator 
+	for (std::list<DeclNode *>::iterator
 		it=myDecls->begin();
 		it != myDecls->end(); ++it){
 	    DeclNode * elt = *it;
@@ -75,7 +75,7 @@ void FnDeclNode::unparse(std::ostream& out, int indent){
 void FormalDeclNode::unparse(std::ostream& out, int indent){
 	doIndent(out, indent);
 	myType->unparse(out, 0);
-	out << " " << myDeclaredID->getString();
+	out << " " << myDeclaredID->getString() << ", " << mySymbol->getOffset();
 }
 
 void StructDeclNode::unparse(std::ostream& out, int indent){

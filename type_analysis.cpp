@@ -40,7 +40,7 @@ bool FnDeclNode::typeAnalysis(){
 		throw InternalError("FnDeclNode has a "
 			"non-function kind id symbol");
 	}
-	FuncSymbol * fnSymbol = 
+	FuncSymbol * fnSymbol =
 		dynamic_cast<FuncSymbol *>(idEntry);
 	return myBody->fnTypeAnalysis(fnSymbol);
 }
@@ -48,7 +48,7 @@ bool FnDeclNode::typeAnalysis(){
 bool FnBodyNode::fnTypeAnalysis(FuncSymbol * fnSym){
 	//We can ignore declarations, since they will
 	// never have type errors
-	
+
 	return myStmtList->stmtTypeAnalysis(fnSym);
 }
 
@@ -119,6 +119,7 @@ bool WriteStmtNode::stmtTypeAnalysis(FuncSymbol * fnSym){
 		TypeErr::writeStructVar(myExp->getPosition());
 		return false;
 	}
+	typeToWrite = type;
 	return true;
 }
 
@@ -166,7 +167,7 @@ bool ReturnStmtNode::stmtTypeAnalysis(FuncSymbol * fnSym){
 
 	if (myExp == NULL){
 		if (retType == "void"){ return true; }
-		TypeErr::missingReturnValue("0,0"); 
+		TypeErr::missingReturnValue("0,0");
 		return false;
 	}
 	std::string expType = myExp->expTypeAnalysis();
@@ -201,7 +202,7 @@ std::string IntLitNode::expTypeAnalysis(){
 
 std::string BinaryExpNode::expectedResType(){
 	switch (this->binOpKind()){
-		case BinOpKind::MATH: 
+		case BinOpKind::MATH:
 			return "int";
 		case BinOpKind::LOG:
 			return "bool";
@@ -215,7 +216,7 @@ std::string BinaryExpNode::expectedResType(){
 
 bool BinaryExpNode::acceptsOperandType(std::string opIn){
 	switch (this->binOpKind()){
-		case BinOpKind::MATH: 
+		case BinOpKind::MATH:
 			if (opIn == "int"){ return true; }
 			return false;
 		case BinOpKind::LOG:
@@ -232,7 +233,7 @@ bool BinaryExpNode::acceptsOperandType(std::string opIn){
 
 std::string BinaryExpNode::reportOpErr(std::string ePos){
 	switch (this->binOpKind()){
-		case BinOpKind::MATH: 
+		case BinOpKind::MATH:
 			return TypeErr::badMath(ePos);
 		case BinOpKind::LOG:
 			return TypeErr::badLogical(ePos);
@@ -338,10 +339,10 @@ std::string AssignNode::expTypeAnalysis(){
 	std::string rhsType = myExpRHS->expTypeAnalysis();
 	//The spec isn't crystal clear whether a type that could
 	// NEVER be an assign operand should raise a report
-	// if the other operand is error. In keeping with the 
-	// spirit of the "(true + 3) == x" example, which 
-	// raises just 1 error regardless of the type of x, this 
-	// implementation doesn't raise an error on x even if it's 
+	// if the other operand is error. In keeping with the
+	// spirit of the "(true + 3) == x" example, which
+	// raises just 1 error regardless of the type of x, this
+	// implementation doesn't raise an error on x even if it's
 	// a function, etc.
 	if (lhsType == "ERROR" || rhsType == "ERROR"){
 		return "ERROR";
@@ -371,7 +372,7 @@ std::string CallExpNode::expTypeAnalysis(){
 	VarSymbol * retVar = fnSym->getRetSymbol();
 	std::string retType = retVar->getTypeString();
 
-	std::list<VarSymbol *> * formals = 
+	std::list<VarSymbol *> * formals =
 		fnSym->getFormalSymbols();
 	std::list<ExpNode *> * args = myExpList->getExps();
 	//Count args
@@ -387,9 +388,9 @@ std::string CallExpNode::expTypeAnalysis(){
 			VarSymbol * formal = *formalItr;
 			std::string argErrPos = arg->getPosition();
 
-			std::string actualType = 
+			std::string actualType =
 				arg->expTypeAnalysis();
-			std::string formalType = 
+			std::string formalType =
 				formal->getTypeString();
 			if (actualType == "ERROR"){
 				return "ERROR";
@@ -426,9 +427,9 @@ std::string UnaryMinusNode::expTypeAnalysis(){
 
 /*
 * Creates a comma-separated string listing the types of formals.
-* This function mostly serves as a helper for 
-* FnDeclNode::getTypeString() in building a function 
-* type signature for unparsing. 
+* This function mostly serves as a helper for
+* FnDeclNode::getTypeString() in building a function
+* type signature for unparsing.
 */
 std::string FormalsListNode::getTypeString(){
 	std::string res = "";
@@ -443,12 +444,12 @@ std::string FormalsListNode::getTypeString(){
 
 /*
 * Create a string representing the type signature of a
-* function.  This function is used for building a function 
-* type signature for unparsing. 
+* function.  This function is used for building a function
+* type signature for unparsing.
 */
 std::string FnDeclNode::getTypeString(){
-	return myFormals->getTypeString() 
-		+ "->" 
+	return myFormals->getTypeString()
+		+ "->"
 		+ myRetType->getTypeString();
 }
 
@@ -460,5 +461,5 @@ std::string FormalDeclNode::getTypeString(){
 	return myType->getTypeString();
 }
 
-} // End namespace LILC 
+} // End namespace LILC
 

@@ -62,8 +62,8 @@ int		{ return produceNullaryToken(TokenTag::INT); }
 true		{ return produceNullaryToken(TokenTag::TRUE); }
 false		{ return produceNullaryToken(TokenTag::FALSE); }
 struct		{ return produceNullaryToken(TokenTag::STRUCT); }
-input		{ return produceNullaryToken(TokenTag::INPUT); }
-output		{ return produceNullaryToken(TokenTag::OUTPUT); }
+cin		{ return produceNullaryToken(TokenTag::INPUT); }
+cout		{ return produceNullaryToken(TokenTag::OUTPUT); }
 if		{ return produceNullaryToken(TokenTag::IF); }
 else		{ return produceNullaryToken(TokenTag::ELSE); }
 while		{ return produceNullaryToken(TokenTag::WHILE); }

@@ -1,10 +1,7 @@
 #ifndef LILC_MIPS_INCLUDE
 
 #include <string>
-#include "err.hpp"
-#include "ast.hpp"
-#include "symbol_table.hpp"
-#include "lilc_compiler.hpp"
+#include <fstream>
 
 namespace LILC{
 
@@ -16,7 +13,7 @@ namespace LILC{
 //     Registers: FP, SP, RA, V0, V1, A0, T0, T1
 //     Values: TRUE, FALSE
 //
-// The operations are include various "generate" methods to 
+// The operations are include various "generate" methods to
 // print nicely formatted assembly code:
 //     generateWithComment
 //     generate
@@ -58,18 +55,18 @@ public:
 	// GENERATE OPERATIONS
 	// *******************************************************
 	// *******************************************************
-    
+
 	// *******************************************************
 	// generateWithComment
 	//    takes an op code, comment, and 0 to 3 string args
-	//    writes formatted, commented code (ending with new 
+	//    writes formatted, commented code (ending with new
 	//    line)
 	// *******************************************************
 	void generateWithComment(
-		std::string opcode, 
+		std::string opcode,
 		std::string comment,
-		std::string arg1="", 
-		std::string arg2="", 
+		std::string arg1="",
+		std::string arg2="",
 		std::string arg3="");
 
 	// ******************************************************
@@ -78,24 +75,24 @@ public:
 	//    writes formatted code (ending with new line)
 	// ******************************************************
 	void generate(
-		const std::string opcode, 
-		const std::string arg1="", 
-		const std::string arg2="", 
+		const std::string opcode,
+		const std::string arg1="",
+		const std::string arg2="",
 		const std::string arg3="");
 
 	// *******************************************************
 	// generateIndexed
-	//    takes an op code, target register T1 (as string), 
-	//    indexed register T2 (as string), - offset xx (int), 
+	//    takes an op code, target register T1 (as string),
+	//    indexed register T2 (as string), - offset xx (int),
 	//    and optional comment
 	//    writes formatted code (ending with new line) of the form
 	//    op T1, xx(T2) #comment
 	// *******************************************************
 	void generateIndexed(
-		std::string opcode, 
-		std::string arg1, 
+		std::string opcode,
+		std::string arg1,
 		std::string arg2,
-		int arg3, 
+		int arg3,
 		std::string comment);
 
 	// *******************************************************
@@ -104,9 +101,9 @@ public:
 	//    writes formatted code (ending with new line)
 	// *******************************************************
 	void generateLabeled(
-		std::string label, 
+		std::string label,
 		std::string opcode,
-		std::string comment, 
+		std::string comment,
 		std::string arg1 = "");
 
 	// ******************************************************
@@ -127,7 +124,7 @@ public:
 	//   generate: L:    # comment
 	// ******************************************************
 	void genLabel(
-		std::string label, 
+		std::string label,
 		std::string comment="");
 
 	// ******************************************************
@@ -136,15 +133,55 @@ public:
 	// ******************************************************
 	std::string nextLabel();
 
+	// ******************************************************
+	// Generate global variable:
+	//
+	// ******************************************************
+	void genGlobalVar(std::string name, int size);
+
+	// ******************************************************
+	// Generate function entrance:
+	//
+	// ******************************************************
+	void genFuncEntrance(std::string name, int formalsSize, int localsSize);
+
+	// ******************************************************
+	// Generate function exit:
+	//
+	// ******************************************************
+	void genFuncExit(std::string name, int formalsSize, int localsSize);
+
+	void genWrite(std::string type);
+
+	void genStringLit(std::string value);
+
+	void genIntLit(int value);
+
+	void genBoolLit(bool value);
+
+	void genAddr(std::string id, bool isGlobal, int offset);
+
+	void genAssign();
+
+	void genLoadId(std::string id, bool isGlobal, int offset);
+
+	void genNegativeNum();
+
+	void genMult(std::string arg1, std::string arg2, std::string result);
+
+	void genNot();
+
+	void genDiv(std::string arg1, std::string arg2, std::string result);
+
 private:
 	// for pretty printing generated code
 	static const int MAXLEN = 4;
 
 	// for generating labels
-	int currLabel = 0;
-    
+	int currLabel;
+
 };
 
-} // End namespace LILC 
+} // End namespace LILC
 
 #endif
