@@ -393,4 +393,14 @@ bool WhileStmtNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
+bool ReadStmtNode::codeGen(LilC_Backend* backend) {
+	backend->generateWithComment("", " READ");
+	myExp->genAddr(backend);
+	backend->genPop(LilC_Backend::T0);
+	backend->generate("li", LilC_Backend::V0, "5");
+	backend->generate("syscall");
+	backend->generateIndexed("sw", LilC_Backend::V0, LilC_Backend::T0, 0, "Store value read");
+	return true;
+}
+
 } // End namespace LILC

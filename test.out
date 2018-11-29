@@ -8,49 +8,15 @@ _start:		# add __start for main only
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
 	subu  $sp, $sp, 4
-			# Assign
-	li    $t0, 5
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
+			# READ
 	la    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	sw    $t0, 0($t1)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-			# while statement
-.L0:		#  Beginning of while loop
-			# GREATER THAN OR EQUAL
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L2
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L3
-.L2:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L3:		#  exit greater than exp
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 1
-	bne   $t0, $t1, .L1
+	li    $v0, 5
+	syscall
+	sw    $v0, 0($t0)	#Store value read
 			# WRITE
 	lw    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -61,41 +27,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L4:	.asciiz "\n"
+.L0:	.asciiz "\n"
 	.text
-	la    $t0, .L4
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-			# POSTDEC
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	addi  $t0, -1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	la    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	sw    $t0, 0($t1)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L0
-.L1:		#  exit for while loop
-			# WRITE
-	.data
-.L5:	.asciiz "Finished\n"
-	.text
-	la    $t0, .L5
+	la    $t0, .L0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP

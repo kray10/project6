@@ -2,12 +2,7 @@
 void main() {
   int a;
 
-  a = 5;
-
-  while (a >= 0) {
-    cout << a;
-    cout << "\n";
-    a--;
-  }
-  cout << "Finished\n";
+  cin >> a;
+  cout << a;
+  cout << "\n";
 }
