@@ -1,5 +1,13 @@
+int _global;
+
 int add(int a, int b) {
   return a + b;
+}
+
+int sub(int a) {
+  int b;
+  b = 1;
+  return a - b;
 }
 
 void main() {
@@ -10,5 +18,13 @@ void main() {
   d = 100;
   c = add(c, d);
   cout << c;
-  cout << "\n";
+  cout << " : 110\n";
+
+  cout << "print 5 through 0\n";
+  _global = 5;
+  while (_global >= 0) {
+    cout << _global;
+    cout << "\n";
+    _global = sub(_global);
+  }
 }

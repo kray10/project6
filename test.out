@@ -1,3 +1,6 @@
+	.data
+	.align 2
+__global: .space 4
 	.text
 _add:		# add function entry
 	sw    $ra, 0($sp)	#PUSH
@@ -27,6 +30,53 @@ _add_Exit:
 	lw    $ra, -8($fp)	#load return address
 	move  $t0, $fp		#save control link
 	lw    $fp, -12($fp)	#restore FP
+	move  $sp, $t0		#restore SP
+	jr    $ra		#return
+	.text
+_sub:		# sub function entry
+	sw    $ra, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 12
+	subu  $sp, $sp, 4
+			# Assign
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# MINUS
+	lw    $t0, 0($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sub   $t0, $t0, $t1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $v0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+		 #FUNCTION EXIT
+_sub_Exit:
+	lw    $ra, -4($fp)	#load return address
+	move  $t0, $fp		#save control link
+	lw    $fp, -8($fp)	#restore FP
 	move  $sp, $t0		#restore SP
 	jr    $ra		#return
 	.text
@@ -103,7 +153,7 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L0:	.asciiz "\n"
+.L0:	.asciiz " : 110\n"
 	.text
 	la    $t0, .L0
 	sw    $t0, 0($sp)	#PUSH
@@ -112,6 +162,100 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
+			# WRITE
+	.data
+.L1:	.asciiz "print 5 through 0\n"
+	.text
+	la    $t0, .L1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# Assign
+	li    $t0, 5
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, __global
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# while statement
+.L2:		#  Beginning of while loop
+			# GREATER THAN OR EQUAL
+	lw    $t0, __global
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bge   $t0, $t1, .L4
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L5
+.L4:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L5:		#  exit greater than exp
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 1
+	bne   $t0, $t1, .L3
+			# WRITE
+	lw    $t0, __global
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L6:	.asciiz "\n"
+	.text
+	la    $t0, .L6
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# Assign
+	lw    $t0, __global
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	jal   _sub
+	sw    $v0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, __global
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	j     .L2
+.L3:		#  exit for while loop
 		 #FUNCTION EXIT
 _main_Exit:
 	lw    $ra, 0($fp)	#load return address
