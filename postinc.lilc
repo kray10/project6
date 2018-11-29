@@ -1,18 +1,13 @@
-bool a;
+
 void main() {
-  bool b;
+  int a;
 
-  a = true;
-  b = false;
+  a = 5;
 
-  if (b) {
-    cout << "error\n";
-  }else {
-    cout << "in else\n";
+  while (a >= 0) {
+    cout << a;
+    cout << "\n";
+    a--;
   }
-  if (a) {
-    cout << "in if\n";
-  } else {
-    cout << "error\n";
-  }
+  cout << "Finished\n";
 }

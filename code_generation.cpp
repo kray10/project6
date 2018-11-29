@@ -378,4 +378,19 @@ bool IfElseStmtNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
+bool WhileStmtNode::codeGen(LilC_Backend* backend) {
+	backend->generateWithComment("", " while statement");
+	std::string start = backend->nextLabel();
+	std::string exit = backend->nextLabel();
+	backend->genLabel(start, " Beginning of while loop");
+	myExp->codeGen(backend);
+	backend->genPop(LilC_Backend::T0);
+	backend->generate("li", LilC_Backend::T1, LilC_Backend::TRUE);
+	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
+	myStmts->codeGen(backend);
+	backend->generate("j", start);
+	backend->genLabel(exit, " exit for while loop");
+	return true;
+}
+
 } // End namespace LILC

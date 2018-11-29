@@ -1,6 +1,3 @@
-	.data
-	.align 2
-_a: .space 4
 	.text
 	.globl main
 main:		# Method entry
@@ -12,23 +9,7 @@ _start:		# add __start for main only
 	addu  $fp, $sp, 8
 	subu  $sp, $sp, 4
 			# Assign
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	la    $t0, _a
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	sw    $t0, 0($t1)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-			# Assign
-	li    $t0, 0
+	li    $t0, 5
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	la    $t0, -8($fp)
@@ -43,72 +24,84 @@ _start:		# add __start for main only
 	subu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-			# If else statement
+			# while statement
+.L0:		#  Beginning of while loop
+			# GREATER THAN OR EQUAL
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bge   $t0, $t1, .L2
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L3
+.L2:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L3:		#  exit greater than exp
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 1
+	bne   $t0, $t1, .L1
+			# WRITE
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L4:	.asciiz "\n"
+	.text
+	la    $t0, .L4
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# POSTDEC
 	lw    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	li    $t1, 1
-	bne   $t0, $t1, .L0
-			# WRITE
-	.data
-.L2:	.asciiz "error\n"
-	.text
-	la    $t0, .L2
+	addi  $t0, -1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
+	la    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-	j     .L1
-.L0:		#  else portion statment
-			# WRITE
-	.data
-.L3:	.asciiz "in else\n"
-	.text
-	la    $t0, .L3
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-.L1:
-			# If else statement
-	lw    $t0, _a
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	li    $t1, 1
-	bne   $t0, $t1, .L4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L0
+.L1:		#  exit for while loop
 			# WRITE
 	.data
-.L6:	.asciiz "in if\n"
+.L5:	.asciiz "Finished\n"
 	.text
-	la    $t0, .L6
+	la    $t0, .L5
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-	j     .L5
-.L4:		#  else portion statment
-			# WRITE
-	.data
-.L7:	.asciiz "error\n"
-	.text
-	la    $t0, .L7
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-.L5:
 		 #FUNCTION EXIT
 _main_Exit:
 	lw    $ra, 0($fp)	#load return address

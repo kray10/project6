@@ -803,6 +803,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	ExpNode * myExp;
