@@ -27,4 +27,69 @@ void main() {
     cout << "\n";
     _global = sub(_global);
   }
+
+  _global = 5;
+  _global = _global * d / 2;
+  cout << _global;
+  cout << " : 250\n";
+
+  if ((c >= d) && (d <= c)) {
+    cout << (c >= d) && (d <= c);
+    cout << " : 1\n";
+  }
+
+  if ((c > d) && (d < c)) {
+    cout << (c > d) && (d < c);
+    cout << " : 1\n";
+  }
+
+  if ((c != d) && (d != c)) {
+    cout << (c != d) && (d != c);
+    cout << " : 1\n";
+  }
+
+  if ((c == d) && (d == c)) {
+    cout << "ERROR: incorrectly entered if statment\n";
+  }
+
+  if ((c != d) && (d == c)) {
+    cout << "ERROR: incorrectly entered if statment\n";
+  }
+
+  c = 100;
+  if ((c == d) && (d == c)) {
+    cout << (c == d) && (d == c);
+    cout << " : 1\n";
+  }
+
+  if ((c >= d) && (d <= c)) {
+    cout << (c >= d) && (d <= c);
+    cout << " : 1\n";
+  }
+
+  c = 200;
+  if ((c >= d) && (d <= c)) {
+    cout << (c >= d) && (d <= c);
+    cout << " : 1\n";
+  } else {
+    cout << "ERROR\n";
+  }
+
+  if ((c >= d) && (c <= d)) {
+    cout << "ERROR\n";
+  } else {
+    cout << (c >= d) && (c <= d);
+    cout << " : 0\n";
+  }
+
+  if ((d >= c) && (d <= c)) {
+    cout << "ERROR\n";
+  } else {
+    cout << (d >= c) && (d <= c);
+    cout << " : 0\n";
+  }
+
+  _global = (((c + c) / c) * c) - c;
+  cout << _global;
+  cout << " : 200\n";
 }
