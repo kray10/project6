@@ -135,6 +135,9 @@ public:
 	virtual bool genAddr(LilC_Backend* backend) {
 		throw runtime_error("ExpNode not implemented");
 	}
+	virtual bool genJumpAndLink(LilC_Backend* backend) {
+		throw runtime_error("ExpNode not implemented");
+	}
 };
 
 class IdNode : public ExpNode{
@@ -150,6 +153,7 @@ public:
 	bool nameAnalysis(SymbolTable * symTab) override;
 	bool genAddr(LilC_Backend* backend) override;
 	bool codeGen(LilC_Backend* backend) override;
+	bool genJumpAndLink(LilC_Backend* backend) override;
 	StructSymbol * dotNameAnalysis(
 		SymbolTable * symTab) override;
 	std::string expTypeAnalysis() override;
@@ -220,6 +224,7 @@ public:
 	void unparse(std::ostream& out, int indent) override;
 	virtual bool nameAnalysis(SymbolTable * symTab) override;
 	std::list<ExpNode *> * getExps() { return &myExps; }
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	std::list<ExpNode *> myExps;
@@ -473,6 +478,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	std::string expTypeAnalysis() override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	IdNode * myId;
@@ -821,6 +827,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	CallExpNode * myCallExp;
@@ -835,6 +842,7 @@ public:
 	void unparse(std::ostream& out, int indent);
 	bool nameAnalysis(SymbolTable * symTab);
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
+	bool codeGen(LilC_Backend* backend) override;
 
 private:
 	ExpNode * myExp;

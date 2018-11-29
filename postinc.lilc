@@ -1,8 +1,14 @@
+int add(int a, int b) {
+  return a + b;
+}
 
 void main() {
-  int a;
+  int c;
+  int d;
 
-  cin >> a;
-  cout << a;
+  c = 10;
+  d = 100;
+  c = add(c, d);
+  cout << c;
   cout << "\n";
 }

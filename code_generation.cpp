@@ -112,6 +112,12 @@ bool IdNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
+bool IdNode::genJumpAndLink(LilC_Backend* backend) {
+	std::string label = myStrVal == "main" ? myStrVal : "_" + myStrVal;
+	backend->generate("jal", label);
+	return true;
+}
+
 bool AssignStmtNode::codeGen(LilC_Backend* backend) {
 	myAssign->codeGen(backend);
 	backend->genPop(LilC_Backend::T0);
@@ -400,6 +406,32 @@ bool ReadStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generate("li", LilC_Backend::V0, "5");
 	backend->generate("syscall");
 	backend->generateIndexed("sw", LilC_Backend::V0, LilC_Backend::T0, 0, "Store value read");
+	return true;
+}
+
+bool CallStmtNode::codeGen(LilC_Backend* backend) {
+	myCallExp->codeGen(backend);
+	backend->genPop(LilC_Backend::T0);
+	return true;
+}
+
+bool CallExpNode::codeGen(LilC_Backend* backend) {
+	myExpList->codeGen(backend);
+	myId->genJumpAndLink(backend);
+	backend->genPush(LilC_Backend::V0);
+	return true;
+}
+
+bool ExpListNode::codeGen(LilC_Backend* backend) {
+	for (ExpNode * exp : myExps) {
+		exp->codeGen(backend);
+	}
+	return true;
+}
+
+bool ReturnStmtNode::codeGen(LilC_Backend* backend) {
+	myExp->codeGen(backend);
+	backend->genPop(LilC_Backend::V0);
 	return true;
 }
 
