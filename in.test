@@ -10,6 +10,12 @@ int sub(int a) {
   return a - b;
 }
 
+int nestedFunc(int a) {
+  a = add(a, 10);
+  a = sub(a);
+  return a;
+}
+
 void main() {
   int c;
   int d;
@@ -114,4 +120,22 @@ void main() {
     cout << _global;
     cout << " : 210\n";
   }
+
+  if (true) {
+    int x;
+    int y;
+    if (true) {
+      int z;
+      x = 1;
+      y = 2;
+      z = 3;
+      x = x + y +z;
+      cout << x;
+      cout << " : 6\n";
+    }
+  }
+
+
+  cout << nestedFunc(1);
+  cout << " : 10\n";
 }
