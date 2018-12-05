@@ -128,38 +128,6 @@ void LilC_Backend::genGlobalVar(std::string name, int size) {
 	    << ": .space " <<size << std::endl;
 }
 
-void LilC_Backend::genFuncEntrance(std::string name, int formalsSize, int localsSize) {
-	if (name == "main") {
-		out << "\t.text\n\t.globl main" << std::endl;
-		genLabel(name, "Method entry");
-		genLabel("_start", "add __start for main only");
-	} else {
-		out << "\t.text" << std::endl;
-		genLabel("_" + name, name + " function entry");
-	}
-
-	genPush(RA);
-	genPush(FP);
-	generate("addu", FP, SP, std::to_string(formalsSize + 8));
-	generate("subu", SP, SP, std::to_string(localsSize));
-}
-
-void LilC_Backend::genFuncExit(std::string name, int formalsSize, int localsSize) {
-	out << "\t\t #FUNCTION EXIT" << std::endl;
-	genLabel("_" + name + "_Exit");
-	generateIndexed("lw", RA, FP, formalsSize * -1, "load return address");
-	generateWithComment("move", "save control link", T0, FP);
-	generateIndexed("lw", FP, FP, (formalsSize + 4) * -1, "restore FP");
-	generateWithComment("move", "restore SP", SP, T0);
-
-	if (name == "main") {
-		generateWithComment("li", "load exit code for syscall", V0, "10");
-		generateWithComment("syscall", "only do this for main", "", "");
-	} else {
-		generateWithComment("jr", "return", RA, "");
-	}
-}
-
 void LilC_Backend::genWrite(std::string type) {
 	genPop(A0);
 	if (type == "int" || type == "bool") {

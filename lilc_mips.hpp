@@ -139,18 +139,6 @@ public:
 	// ******************************************************
 	void genGlobalVar(std::string name, int size);
 
-	// ******************************************************
-	// Generate function entrance:
-	//
-	// ******************************************************
-	void genFuncEntrance(std::string name, int formalsSize, int localsSize);
-
-	// ******************************************************
-	// Generate function exit:
-	//
-	// ******************************************************
-	void genFuncExit(std::string name, int formalsSize, int localsSize);
-
 	void genWrite(std::string type);
 
 	void genStringLit(std::string value);

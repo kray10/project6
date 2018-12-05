@@ -47,30 +47,70 @@ bool VarDeclNode::globalCodeGen(LilC_Backend* backend){
 }
 
 bool FnDeclNode::globalCodeGen(LilC_Backend* backend){
-	backend->genFuncEntrance(getName(), myFormals->offsetSize(),
-				myBody->getLocalsSize());
-	myBody->codeGen(backend);
-	backend->genFuncExit(getName(), myFormals->offsetSize(),
-				myBody->getLocalsSize());
+	std::string entrance = "_" + getName();
+	std::string exit = "_" + getName() + "_Exit";
+
+	if (getName() == "main") {
+		backend->generate(".text");
+		backend->generate(".globl main");
+		backend->genLabel(getName(), "Method entry");
+		backend->genLabel("_start", "add __start for main only");
+	} else {
+		backend->generate(".text");
+		backend->genLabel(entrance, getName() + " function entry");
+	}
+
+	backend->genPush(LilC_Backend::RA);
+	backend->genPush(LilC_Backend::FP);
+	backend->generate("addu", LilC_Backend::FP, LilC_Backend::SP, std::to_string(myFormals->offsetSize() + 8));
+	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myBody->getLocalsSize()));
+
+	myBody->codeGenWithExit(backend, exit);
+
+	backend->generateWithComment("","#FUNCTION EXIT");
+	backend->genLabel(exit);
+	backend->generateIndexed("lw", LilC_Backend::RA, LilC_Backend::FP, myFormals->offsetSize() * -1, "load return address");
+	backend->generateWithComment("move", "save control link", LilC_Backend::T0, LilC_Backend::FP);
+	backend->generateIndexed("lw", LilC_Backend::FP, LilC_Backend::FP, (myFormals->offsetSize() + 4) * -1, "restore FP");
+	backend->generateWithComment("move", "restore SP", LilC_Backend::SP, LilC_Backend::T0);
+
+	if (getName() == "main") {
+		backend->generateWithComment("li", "load exit code for syscall", LilC_Backend::V0, "10");
+		backend->generateWithComment("syscall", "only do this for main", "", "");
+	} else {
+		backend->generateWithComment("jr", "return", LilC_Backend::RA, "");
+	}
 	return true;
 }
 
 bool FormalDeclNode::globalCodeGen(LilC_Backend* backend){
-	throw runtime_error("Not implemented");
+	throw runtime_error("Not implemented: FormalDeclNode");
 }
 
 bool StructDeclNode::globalCodeGen(LilC_Backend* backend){
-	throw runtime_error("Not implemented");
+	throw runtime_error("Not implemented: StructDeclNode");
 }
 
 bool FnBodyNode::codeGen(LilC_Backend* backend) {
-	return myStmtList->codeGen(backend);
+	throw runtime_error("Not implement: FnBodyNode");
+}
+
+bool FnBodyNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
+	return myStmtList->codeGenWithExit(backend, exitLabel);
 }
 
 bool StmtListNode::codeGen(LilC_Backend* backend) {
 	bool valid = true;
 	for (StmtNode* stmt : *myStmts) {
 		valid = stmt->codeGen(backend) && valid;
+	}
+	return valid;
+}
+
+bool StmtListNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
+	bool valid = true;
+	for (StmtNode* stmt : *myStmts) {
+		valid = stmt->codeGenWithExit(backend, exitLabel) && valid;
 	}
 	return valid;
 }
@@ -370,6 +410,20 @@ bool IfStmtNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
+bool IfStmtNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
+	backend->generateWithComment("", " If statement");
+	std::string exit = backend->nextLabel();
+	myExp->codeGen(backend);
+	backend->genPop(LilC_Backend::T0);
+	backend->generate("li", LilC_Backend::T1, LilC_Backend::TRUE);
+	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
+	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
+	myStmts->codeGenWithExit(backend, exitLabel);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
+	backend->genLabel(exit, " Skip if statment");
+	return true;
+}
+
 bool IfElseStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generateWithComment("", " If else statement");
 	std::string elseB = backend->nextLabel();
@@ -390,6 +444,26 @@ bool IfElseStmtNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
+bool IfElseStmtNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
+	backend->generateWithComment("", " If else statement");
+	std::string elseB = backend->nextLabel();
+	std::string exit = backend->nextLabel();
+	myExp->codeGen(backend);
+	backend->genPop(LilC_Backend::T0);
+	backend->generate("li", LilC_Backend::T1, LilC_Backend::TRUE);
+	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, elseB);
+	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
+	myStmtsT->codeGenWithExit(backend, exitLabel);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
+	backend->generate("j", exit);
+	backend->genLabel(elseB, " else portion statment");
+	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsF->sizeOfDecls()));
+	myStmtsF->codeGenWithExit(backend, exitLabel);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
+	backend->genLabel(exit);
+	return true;
+}
+
 bool WhileStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generateWithComment("", " while statement");
 	std::string start = backend->nextLabel();
@@ -401,6 +475,23 @@ bool WhileStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
 	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	myStmts->codeGen(backend);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
+	backend->generate("j", start);
+	backend->genLabel(exit, " exit for while loop");
+	return true;
+}
+
+bool WhileStmtNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
+	backend->generateWithComment("", " while statement");
+	std::string start = backend->nextLabel();
+	std::string exit = backend->nextLabel();
+	backend->genLabel(start, " Beginning of while loop");
+	myExp->codeGen(backend);
+	backend->genPop(LilC_Backend::T0);
+	backend->generate("li", LilC_Backend::T1, LilC_Backend::TRUE);
+	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
+	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
+	myStmts->codeGenWithExit(backend, exitLabel);
 	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	backend->generate("j", start);
 	backend->genLabel(exit, " exit for while loop");
@@ -437,9 +528,10 @@ bool ExpListNode::codeGen(LilC_Backend* backend) {
 	return true;
 }
 
-bool ReturnStmtNode::codeGen(LilC_Backend* backend) {
+bool ReturnStmtNode::codeGenWithExit(LilC_Backend* backend, std::string exitLabel) {
 	myExp->codeGen(backend);
 	backend->genPop(LilC_Backend::V0);
+	backend->generate("j", exitLabel);
 	return true;
 }
 
