@@ -23,8 +23,12 @@ void main() {
   cout << "print 5 through 0\n";
   _global = 5;
   while (_global >= 0) {
+    int b;
+    b = _global + 1;
     cout << _global;
-    cout << "\n";
+    cout << " : _global\n";
+    cout << b;
+    cout << " : b (should be 1 more than _global)\n";
     _global = sub(_global);
   }
 
@@ -69,8 +73,13 @@ void main() {
 
   c = 200;
   if ((c >= d) && (d <= c)) {
+    int r;
+    r = 50;
+    r = c + r;
     cout << (c >= d) && (d <= c);
     cout << " : 1\n";
+    cout << r;
+    cout << " : 250\n";
   } else {
     cout << "ERROR\n";
   }
@@ -78,8 +87,13 @@ void main() {
   if ((c >= d) && (c <= d)) {
     cout << "ERROR\n";
   } else {
+    int r;
+    r = 50;
+    r = c + r;
     cout << (c >= d) && (c <= d);
     cout << " : 0\n";
+    cout << r;
+    cout << " : 250\n";
   }
 
   if ((d >= c) && (d <= c)) {

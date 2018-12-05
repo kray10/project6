@@ -194,6 +194,7 @@ public:
 	StmtNode(size_t lIn, size_t cIn) : ASTNode(lIn, cIn){ }
 	virtual void unparse(std::ostream& out, int indent) = 0;
 	virtual bool nameAnalysis(SymbolTable * symTab) = 0;
+	virtual bool nameAnalysisWithOffset(SymbolTable * symTab,int offset) { return nameAnalysis(symTab);};
 	virtual bool stmtTypeAnalysis(FuncSymbol * fnSym) = 0;
 	virtual bool codeGen(LilC_Backend* backend) {
 		throw runtime_error("Stmt Not implemented");
@@ -237,6 +238,7 @@ public:
 	}
 	void unparse(std::ostream& out, int indent) override;
 	bool nameAnalysis(SymbolTable * symTab) override;
+	bool nameAnalysisWithOffset(SymbolTable * symTab, int offset);
 	bool codeGen(LilC_Backend* backend) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym);
 
@@ -763,7 +765,8 @@ public:
 		myStmts = stmts;
 	}
 	void unparse(std::ostream& out, int indent);
-	bool nameAnalysis(SymbolTable * symTab);
+	bool nameAnalysis(SymbolTable * symTab) {throw runtime_error("Not implemented");};
+	bool nameAnalysisWithOffset(SymbolTable * symTab, int offset) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
 	bool codeGen(LilC_Backend* backend) override;
 
@@ -786,7 +789,8 @@ public:
 		myStmtsF = stmtsF;
 	}
 	void unparse(std::ostream& out, int indent);
-	bool nameAnalysis(SymbolTable * symTab);
+	bool nameAnalysis(SymbolTable * symTab) {throw runtime_error("Not implemented");};
+	bool nameAnalysisWithOffset(SymbolTable * symTab, int offset) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
 	bool codeGen(LilC_Backend* backend) override;
 
@@ -808,7 +812,8 @@ public:
 		myStmts = stmts;
 	}
 	void unparse(std::ostream& out, int indent);
-	bool nameAnalysis(SymbolTable * symTab);
+	bool nameAnalysis(SymbolTable * symTab) {throw runtime_error("Not implemented");};
+	bool nameAnalysisWithOffset(SymbolTable * symTab, int offset) override;
 	bool stmtTypeAnalysis(FuncSymbol * fnSym) override;
 	bool codeGen(LilC_Backend* backend) override;
 

@@ -249,7 +249,7 @@ bool FnBodyNode::nameAnalysis(SymbolTable * symTab) {
 bool FnBodyNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
 	bool result = true;
 	result = myDeclList->nameAnalysisWithOffset(symTab, offset) && result;
-	result = myStmtList->nameAnalysis(symTab) && result;
+	result = myStmtList->nameAnalysisWithOffset(symTab, offset + myDeclList->sizeOfDecls()) && result;
 	return result;
 }
 
@@ -358,6 +358,14 @@ bool StmtListNode::nameAnalysis(SymbolTable * symTab) {
 	return valid;
 }
 
+bool StmtListNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
+	bool valid = true;
+	for(StmtNode * stmt : *myStmts){
+		valid = stmt->nameAnalysisWithOffset(symTab, offset) && valid;
+	}
+	return valid;
+}
+
 bool ExpListNode::nameAnalysis(SymbolTable * symTab) {
 	bool valid = true;
 	for(ExpNode * exp : myExps) {
@@ -386,31 +394,31 @@ bool WriteStmtNode::nameAnalysis(SymbolTable * symTab) {
 	return myExp->nameAnalysis(symTab);
 }
 
-bool IfStmtNode::nameAnalysis(SymbolTable * symTab) {
+bool IfStmtNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
 	bool result = myExp->nameAnalysis(symTab);
 	symTab->enterScope();
-	result = myDecls->nameAnalysis(symTab) && result;
-	result = myStmts->nameAnalysis(symTab) && result;
+	result = myDecls->nameAnalysisWithOffset(symTab, offset) && result;
+	result = myStmts->nameAnalysisWithOffset(symTab, offset + myDecls->sizeOfDecls()) && result;
 	symTab->exitScope();
 	return result;
 }
 
-bool IfElseStmtNode::nameAnalysis(SymbolTable * symTab) {
+bool IfElseStmtNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
 	bool result = myExp->nameAnalysis(symTab);
 	symTab->enterScope();
-	result = myDeclsT->nameAnalysis(symTab) && result;
-	result = myStmtsT->nameAnalysis(symTab) && result;
-	result = myDeclsF->nameAnalysis(symTab) && result;
-	result = myStmtsF->nameAnalysis(symTab) && result;
+	result = myDeclsT->nameAnalysisWithOffset(symTab, offset) && result;
+	result = myStmtsT->nameAnalysisWithOffset(symTab, offset + myDeclsT->sizeOfDecls()) && result;
+	result = myDeclsF->nameAnalysisWithOffset(symTab, offset) && result;
+	result = myStmtsF->nameAnalysisWithOffset(symTab, offset + myDeclsF->sizeOfDecls()) && result;
 	symTab->exitScope();
 	return result;
 }
 
-bool WhileStmtNode::nameAnalysis(SymbolTable * symTab) {
+bool WhileStmtNode::nameAnalysisWithOffset(SymbolTable * symTab, int offset) {
 	bool result = myExp->nameAnalysis(symTab);
 	symTab->enterScope();
-	result = myDecls->nameAnalysis(symTab) && result;
-	result = myStmts->nameAnalysis(symTab) && result;
+	result = myDecls->nameAnalysisWithOffset(symTab, offset) && result;
+	result = myStmts->nameAnalysisWithOffset(symTab, offset + myDecls->sizeOfDecls()) && result;
 	symTab->exitScope();
 	return result;
 }
