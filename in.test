@@ -10,10 +10,36 @@ int sub(int a) {
   return a - b;
 }
 
-int nestedFunc(int a) {
+int callFuncInFunc(int a) {
   a = add(a, 10);
   a = sub(a);
   return a;
+}
+
+bool conditionalInFunc() {
+  bool a;
+  bool b;
+
+  a = true;
+  b = false;
+  if (a) {
+    int d;
+    bool e;
+    d = 5;
+    e = false;
+    cout << e;
+    cout << " : 0\n";
+    while (d > 0) {
+      bool f;
+      f = true;
+      e = f;
+      cout << d;
+      cout << " : d 5 to 1\n";
+      d--;
+    }
+    b = e;
+  }
+  return b;
 }
 
 void main() {
@@ -135,7 +161,9 @@ void main() {
     }
   }
 
-
-  cout << nestedFunc(1);
+  cout << callFuncInFunc(1);
   cout << " : 10\n";
+
+  cout << conditionalInFunc();
+  cout << " : 1\n";
 }

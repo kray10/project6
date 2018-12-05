@@ -80,7 +80,7 @@ _sub_Exit:
 	move  $sp, $t0		#restore SP
 	jr    $ra		#return
 	.text
-_nestedFunc:		# nestedFunc function entry
+_callFuncInFunc:		# callFuncInFunc function entry
 	sw    $ra, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	sw    $fp, 0($sp)	#PUSH
@@ -134,10 +134,241 @@ _nestedFunc:		# nestedFunc function entry
 	lw    $v0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 		 #FUNCTION EXIT
-_nestedFunc_Exit:
+_callFuncInFunc_Exit:
 	lw    $ra, -4($fp)	#load return address
 	move  $t0, $fp		#save control link
 	lw    $fp, -8($fp)	#restore FP
+	move  $sp, $t0		#restore SP
+	jr    $ra		#return
+	.text
+_conditionalInFunc:		# conditionalInFunc function entry
+	sw    $ra, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	subu  $sp, $sp, 8
+			# Assign
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# Assign
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# If statement
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 1
+	bne   $t0, $t1, .L0
+	subu  $sp, $sp, 8
+			# Assign
+	li    $t0, 5
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# Assign
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -20($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# WRITE
+	lw    $t0, -20($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L1:	.asciiz " : 0\n"
+	.text
+	la    $t0, .L1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# while statement
+.L2:		#  Beginning of while loop
+			# GREATER THAN
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bgt   $t0, $t1, .L4
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L5
+.L4:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L5:		#  exit greater than exp
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 1
+	bne   $t0, $t1, .L3
+	subu  $sp, $sp, 4
+			# Assign
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -24($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# Assign
+	lw    $t0, -24($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -20($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# WRITE
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L6:	.asciiz " : d 5 to 1\n"
+	.text
+	la    $t0, .L6
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# POSTDEC
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	addi  $t0, -1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	j     .L2
+.L3:		#  exit for while loop
+			# Assign
+	lw    $t0, -20($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	addu  $sp, $sp, 8
+.L0:		#  Skip if statment
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $v0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+		 #FUNCTION EXIT
+_conditionalInFunc_Exit:
+	lw    $ra, 0($fp)	#load return address
+	move  $t0, $fp		#save control link
+	lw    $fp, -4($fp)	#restore FP
 	move  $sp, $t0		#restore SP
 	jr    $ra		#return
 	.text
@@ -214,9 +445,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L0:	.asciiz " : 110\n"
+.L7:	.asciiz " : 110\n"
 	.text
-	la    $t0, .L0
+	la    $t0, .L7
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -225,9 +456,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L1:	.asciiz "print 5 through 0\n"
+.L8:	.asciiz "print 5 through 0\n"
 	.text
-	la    $t0, .L1
+	la    $t0, .L8
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -251,7 +482,7 @@ _start:		# add __start for main only
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 			# while statement
-.L2:		#  Beginning of while loop
+.L9:		#  Beginning of while loop
 			# GREATER THAN OR EQUAL
 	lw    $t0, __global
 	sw    $t0, 0($sp)	#PUSH
@@ -263,20 +494,20 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L4
+	bge   $t0, $t1, .L11
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L5
-.L4:
+	j     .L12
+.L11:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L5:		#  exit greater than exp
+.L12:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L3
+	bne   $t0, $t1, .L10
 	subu  $sp, $sp, 4
 			# Assign
 			# PLUS
@@ -315,9 +546,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L6:	.asciiz " : _global\n"
+.L13:	.asciiz " : _global\n"
 	.text
-	la    $t0, .L6
+	la    $t0, .L13
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -334,9 +565,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L7:	.asciiz " : b (should be 1 more than _global)\n"
+.L14:	.asciiz " : b (should be 1 more than _global)\n"
 	.text
-	la    $t0, .L7
+	la    $t0, .L14
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -362,8 +593,9 @@ _start:		# add __start for main only
 	subu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	j     .L2
-.L3:		#  exit for while loop
+	addu  $sp, $sp, 4
+	j     .L9
+.L10:		#  exit for while loop
 			# Assign
 	li    $t0, 5
 	sw    $t0, 0($sp)	#PUSH
@@ -430,9 +662,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L8:	.asciiz " : 250\n"
+.L15:	.asciiz " : 250\n"
 	.text
-	la    $t0, .L8
+	la    $t0, .L15
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -452,19 +684,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L12
+	bge   $t0, $t1, .L19
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L13
-.L12:
+	j     .L20
+.L19:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L13:		#  exit greater than exp
+.L20:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L10
+	bne   $t0, 1, .L17
 			# LESS THAN OR EQUAL
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -476,26 +708,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L14
+	ble   $t0, $t1, .L21
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L15
-.L14:
+	j     .L22
+.L21:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L15:		#  exit greater than exp
-	b     .L11		#Exit and exp
-.L10:		# return false
+.L22:		#  exit greater than exp
+	b     .L18		#Exit and exp
+.L17:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L11:		# Exit And expression
+.L18:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L9
+	bne   $t0, $t1, .L16
 	subu  $sp, $sp, 0
 			# WRITE
 			# AND
@@ -510,19 +742,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L18
+	bge   $t0, $t1, .L25
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L19
-.L18:
+	j     .L26
+.L25:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L19:		#  exit greater than exp
+.L26:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L16
+	bne   $t0, 1, .L23
 			# LESS THAN OR EQUAL
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -534,38 +766,39 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L20
+	ble   $t0, $t1, .L27
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L21
-.L20:
+	j     .L28
+.L27:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L21:		#  exit greater than exp
-	b     .L17		#Exit and exp
-.L16:		# return false
+.L28:		#  exit greater than exp
+	b     .L24		#Exit and exp
+.L23:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L17:		# Exit And expression
+.L24:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L22:	.asciiz " : 1\n"
+.L29:	.asciiz " : 1\n"
 	.text
-	la    $t0, .L22
+	la    $t0, .L29
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L9:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L16:		#  Skip if statment
 			# If statement
 			# AND
 			# GREATER THAN
@@ -579,19 +812,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bgt   $t0, $t1, .L26
+	bgt   $t0, $t1, .L33
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L27
-.L26:
+	j     .L34
+.L33:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L27:		#  exit greater than exp
+.L34:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L24
+	bne   $t0, 1, .L31
 			# LESS THAN
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -603,26 +836,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	blt   $t0, $t1, .L28
+	blt   $t0, $t1, .L35
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L29
-.L28:
+	j     .L36
+.L35:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L29:		#  exit less than exp
-	b     .L25		#Exit and exp
-.L24:		# return false
+.L36:		#  exit less than exp
+	b     .L32		#Exit and exp
+.L31:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L25:		# Exit And expression
+.L32:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L23
+	bne   $t0, $t1, .L30
 	subu  $sp, $sp, 0
 			# WRITE
 			# AND
@@ -637,19 +870,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bgt   $t0, $t1, .L32
+	bgt   $t0, $t1, .L39
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L33
-.L32:
+	j     .L40
+.L39:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L33:		#  exit greater than exp
+.L40:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L30
+	bne   $t0, 1, .L37
 			# LESS THAN
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -661,38 +894,39 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	blt   $t0, $t1, .L34
+	blt   $t0, $t1, .L41
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L35
-.L34:
+	j     .L42
+.L41:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L35:		#  exit less than exp
-	b     .L31		#Exit and exp
-.L30:		# return false
+.L42:		#  exit less than exp
+	b     .L38		#Exit and exp
+.L37:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L31:		# Exit And expression
+.L38:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L36:	.asciiz " : 1\n"
+.L43:	.asciiz " : 1\n"
 	.text
-	la    $t0, .L36
+	la    $t0, .L43
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L23:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L30:		#  Skip if statment
 			# If statement
 			# AND
 			# NOT EQUALS
@@ -706,19 +940,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, $t1, .L40
+	bne   $t0, $t1, .L47
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L41
-.L40:
+	j     .L48
+.L47:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L41:		#  exit not equals exp
+.L48:		#  exit not equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L38
+	bne   $t0, 1, .L45
 			# NOT EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -730,26 +964,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, $t1, .L42
+	bne   $t0, $t1, .L49
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L43
-.L42:
+	j     .L50
+.L49:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L43:		#  exit not equals exp
-	b     .L39		#Exit and exp
-.L38:		# return false
+.L50:		#  exit not equals exp
+	b     .L46		#Exit and exp
+.L45:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L39:		# Exit And expression
+.L46:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L37
+	bne   $t0, $t1, .L44
 	subu  $sp, $sp, 0
 			# WRITE
 			# AND
@@ -764,19 +998,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, $t1, .L46
+	bne   $t0, $t1, .L53
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L47
-.L46:
+	j     .L54
+.L53:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L47:		#  exit not equals exp
+.L54:		#  exit not equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L44
+	bne   $t0, 1, .L51
 			# NOT EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -788,38 +1022,39 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, $t1, .L48
+	bne   $t0, $t1, .L55
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L49
-.L48:
+	j     .L56
+.L55:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L49:		#  exit not equals exp
-	b     .L45		#Exit and exp
-.L44:		# return false
+.L56:		#  exit not equals exp
+	b     .L52		#Exit and exp
+.L51:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L45:		# Exit And expression
+.L52:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L50:	.asciiz " : 1\n"
+.L57:	.asciiz " : 1\n"
 	.text
-	la    $t0, .L50
+	la    $t0, .L57
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L37:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L44:		#  Skip if statment
 			# If statement
 			# AND
 			# EQUALS
@@ -833,19 +1068,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L54
+	beq   $t0, $t1, .L61
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L55
-.L54:
+	j     .L62
+.L61:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L55:		#  exit equals exp
+.L62:		#  exit equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L52
+	bne   $t0, 1, .L59
 			# EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -857,39 +1092,40 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L56
+	beq   $t0, $t1, .L63
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L57
-.L56:
+	j     .L64
+.L63:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L57:		#  exit equals exp
-	b     .L53		#Exit and exp
-.L52:		# return false
+.L64:		#  exit equals exp
+	b     .L60		#Exit and exp
+.L59:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L53:		# Exit And expression
+.L60:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L51
+	bne   $t0, $t1, .L58
 	subu  $sp, $sp, 0
 			# WRITE
 	.data
-.L58:	.asciiz "ERROR: incorrectly entered if statment\n"
+.L65:	.asciiz "ERROR: incorrectly entered if statment\n"
 	.text
-	la    $t0, .L58
+	la    $t0, .L65
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L51:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L58:		#  Skip if statment
 			# If statement
 			# AND
 			# NOT EQUALS
@@ -903,19 +1139,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, $t1, .L62
+	bne   $t0, $t1, .L69
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L63
-.L62:
+	j     .L70
+.L69:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L63:		#  exit not equals exp
+.L70:		#  exit not equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L60
+	bne   $t0, 1, .L67
 			# EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -927,39 +1163,40 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L64
+	beq   $t0, $t1, .L71
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L65
-.L64:
+	j     .L72
+.L71:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L65:		#  exit equals exp
-	b     .L61		#Exit and exp
-.L60:		# return false
+.L72:		#  exit equals exp
+	b     .L68		#Exit and exp
+.L67:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L61:		# Exit And expression
+.L68:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L59
+	bne   $t0, $t1, .L66
 	subu  $sp, $sp, 0
 			# WRITE
 	.data
-.L66:	.asciiz "ERROR: incorrectly entered if statment\n"
+.L73:	.asciiz "ERROR: incorrectly entered if statment\n"
 	.text
-	la    $t0, .L66
+	la    $t0, .L73
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L59:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L66:		#  Skip if statment
 			# Assign
 	li    $t0, 100
 	sw    $t0, 0($sp)	#PUSH
@@ -989,19 +1226,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L70
+	beq   $t0, $t1, .L77
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L71
-.L70:
+	j     .L78
+.L77:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L71:		#  exit equals exp
+.L78:		#  exit equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L68
+	bne   $t0, 1, .L75
 			# EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -1013,26 +1250,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L72
+	beq   $t0, $t1, .L79
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L73
-.L72:
+	j     .L80
+.L79:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L73:		#  exit equals exp
-	b     .L69		#Exit and exp
-.L68:		# return false
+.L80:		#  exit equals exp
+	b     .L76		#Exit and exp
+.L75:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L69:		# Exit And expression
+.L76:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L67
+	bne   $t0, $t1, .L74
 	subu  $sp, $sp, 0
 			# WRITE
 			# AND
@@ -1047,19 +1284,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L76
+	beq   $t0, $t1, .L83
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L77
-.L76:
+	j     .L84
+.L83:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L77:		#  exit equals exp
+.L84:		#  exit equals exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L74
+	bne   $t0, 1, .L81
 			# EQUALS
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -1071,38 +1308,39 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	beq   $t0, $t1, .L78
+	beq   $t0, $t1, .L85
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L79
-.L78:
+	j     .L86
+.L85:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L79:		#  exit equals exp
-	b     .L75		#Exit and exp
-.L74:		# return false
+.L86:		#  exit equals exp
+	b     .L82		#Exit and exp
+.L81:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L75:		# Exit And expression
+.L82:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L80:	.asciiz " : 1\n"
+.L87:	.asciiz " : 1\n"
 	.text
-	la    $t0, .L80
+	la    $t0, .L87
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L67:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L74:		#  Skip if statment
 			# If statement
 			# AND
 			# GREATER THAN OR EQUAL
@@ -1116,19 +1354,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L84
+	bge   $t0, $t1, .L91
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L85
-.L84:
+	j     .L92
+.L91:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L85:		#  exit greater than exp
+.L92:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L82
+	bne   $t0, 1, .L89
 			# LESS THAN OR EQUAL
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -1140,26 +1378,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L86
+	ble   $t0, $t1, .L93
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L87
-.L86:
+	j     .L94
+.L93:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L87:		#  exit greater than exp
-	b     .L83		#Exit and exp
-.L82:		# return false
+.L94:		#  exit greater than exp
+	b     .L90		#Exit and exp
+.L89:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L83:		# Exit And expression
+.L90:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L81
+	bne   $t0, $t1, .L88
 	subu  $sp, $sp, 0
 			# WRITE
 			# AND
@@ -1174,19 +1412,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L90
+	bge   $t0, $t1, .L97
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L91
-.L90:
+	j     .L98
+.L97:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L91:		#  exit greater than exp
+.L98:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L88
+	bne   $t0, 1, .L95
 			# LESS THAN OR EQUAL
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -1198,38 +1436,39 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L92
+	ble   $t0, $t1, .L99
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L93
-.L92:
+	j     .L100
+.L99:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L93:		#  exit greater than exp
-	b     .L89		#Exit and exp
-.L88:		# return false
+.L100:		#  exit greater than exp
+	b     .L96		#Exit and exp
+.L95:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L89:		# Exit And expression
+.L96:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L94:	.asciiz " : 1\n"
+.L101:	.asciiz " : 1\n"
 	.text
-	la    $t0, .L94
+	la    $t0, .L101
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L81:		#  Skip if statment
+	addu  $sp, $sp, 0
+.L88:		#  Skip if statment
 			# Assign
 	li    $t0, 200
 	sw    $t0, 0($sp)	#PUSH
@@ -1259,19 +1498,19 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L99
+	bge   $t0, $t1, .L106
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L100
-.L99:
+	j     .L107
+.L106:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L100:		#  exit greater than exp
+.L107:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bne   $t0, 1, .L97
+	bne   $t0, 1, .L104
 			# LESS THAN OR EQUAL
 	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
@@ -1283,26 +1522,26 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L101
+	ble   $t0, $t1, .L108
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L102
-.L101:
+	j     .L109
+.L108:
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L102:		#  exit greater than exp
-	b     .L98		#Exit and exp
-.L97:		# return false
+.L109:		#  exit greater than exp
+	b     .L105		#Exit and exp
+.L104:		# return false
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-.L98:		# Exit And expression
+.L105:		# Exit And expression
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L95
+	bne   $t0, $t1, .L102
 	subu  $sp, $sp, 4
 			# Assign
 	li    $t0, 50
@@ -1360,211 +1599,98 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L105
+	bge   $t0, $t1, .L112
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	j     .L106
-.L105:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L106:		#  exit greater than exp
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bne   $t0, 1, .L103
-			# LESS THAN OR EQUAL
-	lw    $t0, -12($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L107
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L108
-.L107:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L108:		#  exit greater than exp
-	b     .L104		#Exit and exp
-.L103:		# return false
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L104:		# Exit And expression
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 1
-	syscall
-			# WRITE
-	.data
-.L109:	.asciiz " : 1\n"
-	.text
-	la    $t0, .L109
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-			# WRITE
-	lw    $t0, -16($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 1
-	syscall
-			# WRITE
-	.data
-.L110:	.asciiz " : 250\n"
-	.text
-	la    $t0, .L110
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-	j     .L96
-.L95:		#  else portion statment
-	subu  $sp, $sp, 0
-			# WRITE
-	.data
-.L111:	.asciiz "ERROR\n"
-	.text
-	la    $t0, .L111
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-.L96:
-			# If else statement
-			# AND
-			# GREATER THAN OR EQUAL
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, -12($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L116
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L117
-.L116:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L117:		#  exit greater than exp
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bne   $t0, 1, .L114
-			# LESS THAN OR EQUAL
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, -12($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L118
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L119
-.L118:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L119:		#  exit greater than exp
-	b     .L115		#Exit and exp
-.L114:		# return false
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L115:		# Exit And expression
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 1
-	bne   $t0, $t1, .L112
-	subu  $sp, $sp, 0
-			# WRITE
-	.data
-.L120:	.asciiz "ERROR\n"
-	.text
-	la    $t0, .L120
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
 	j     .L113
-.L112:		#  else portion statment
-	subu  $sp, $sp, 4
-			# Assign
-	li    $t0, 50
+.L112:
+	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	la    $t0, -16($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
+.L113:		#  exit greater than exp
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	sw    $t0, 0($t1)
+	bne   $t0, 1, .L110
+			# LESS THAN OR EQUAL
+	lw    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-			# Assign
-			# PLUS
 	lw    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	ble   $t0, $t1, .L114
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L115
+.L114:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L115:		#  exit greater than exp
+	b     .L111		#Exit and exp
+.L110:		# return false
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L111:		# Exit And expression
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L116:	.asciiz " : 1\n"
+	.text
+	la    $t0, .L116
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# WRITE
 	lw    $t0, -16($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
+	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	add   $t0, $t0, $t1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	la    $t0, -16($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	sw    $t0, 0($t1)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
 			# WRITE
+	.data
+.L117:	.asciiz " : 250\n"
+	.text
+	la    $t0, .L117
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	addu  $sp, $sp, 4
+	j     .L103
+.L102:		#  else portion statment
+	subu  $sp, $sp, 0
+			# WRITE
+	.data
+.L118:	.asciiz "ERROR\n"
+	.text
+	la    $t0, .L118
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	addu  $sp, $sp, 4
+.L103:
+			# If else statement
 			# AND
 			# GREATER THAN OR EQUAL
 	lw    $t0, -8($fp)
@@ -1617,15 +1743,131 @@ _start:		# add __start for main only
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 .L122:		# Exit And expression
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 1
+	bne   $t0, $t1, .L119
+	subu  $sp, $sp, 0
+			# WRITE
+	.data
+.L127:	.asciiz "ERROR\n"
+	.text
+	la    $t0, .L127
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	addu  $sp, $sp, 0
+	j     .L120
+.L119:		#  else portion statment
+	subu  $sp, $sp, 4
+			# Assign
+	li    $t0, 50
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# Assign
+			# PLUS
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	add   $t0, $t0, $t1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t0, 0($t1)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+			# WRITE
+			# AND
+			# GREATER THAN OR EQUAL
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bge   $t0, $t1, .L130
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L131
+.L130:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L131:		#  exit greater than exp
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bne   $t0, 1, .L128
+			# LESS THAN OR EQUAL
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	ble   $t0, $t1, .L132
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L133
+.L132:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L133:		#  exit greater than exp
+	b     .L129		#Exit and exp
+.L128:		# return false
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L129:		# Exit And expression
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
 			# WRITE
 	.data
-.L127:	.asciiz " : 0\n"
+.L134:	.asciiz " : 0\n"
 	.text
-	la    $t0, .L127
+	la    $t0, .L134
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1642,89 +1884,18 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L128:	.asciiz " : 250\n"
+.L135:	.asciiz " : 250\n"
 	.text
-	la    $t0, .L128
+	la    $t0, .L135
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L113:
+	addu  $sp, $sp, 0
+.L120:
 			# If else statement
-			# AND
-			# GREATER THAN OR EQUAL
-	lw    $t0, -12($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bge   $t0, $t1, .L133
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L134
-.L133:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L134:		#  exit greater than exp
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	bne   $t0, 1, .L131
-			# LESS THAN OR EQUAL
-	lw    $t0, -12($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, -8($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t1, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	ble   $t0, $t1, .L135
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	j     .L136
-.L135:
-	li    $t0, 1
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L136:		#  exit greater than exp
-	b     .L132		#Exit and exp
-.L131:		# return false
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-.L132:		# Exit And expression
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 1
-	bne   $t0, $t1, .L129
-	subu  $sp, $sp, 0
-			# WRITE
-	.data
-.L137:	.asciiz "ERROR\n"
-	.text
-	la    $t0, .L137
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-	j     .L130
-.L129:		#  else portion statment
-	subu  $sp, $sp, 0
-			# WRITE
 			# AND
 			# GREATER THAN OR EQUAL
 	lw    $t0, -12($fp)
@@ -1777,13 +1948,14 @@ _start:		# add __start for main only
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 .L139:		# Exit And expression
-	lw    $a0, 4($sp)	#POP
+	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	li    $v0, 1
-	syscall
+	li    $t1, 1
+	bne   $t0, $t1, .L136
+	subu  $sp, $sp, 0
 			# WRITE
 	.data
-.L144:	.asciiz " : 0\n"
+.L144:	.asciiz "ERROR\n"
 	.text
 	la    $t0, .L144
 	sw    $t0, 0($sp)	#PUSH
@@ -1792,7 +1964,80 @@ _start:		# add __start for main only
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L130:
+	addu  $sp, $sp, 0
+	j     .L137
+.L136:		#  else portion statment
+	subu  $sp, $sp, 0
+			# WRITE
+			# AND
+			# GREATER THAN OR EQUAL
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bge   $t0, $t1, .L147
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L148
+.L147:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L148:		#  exit greater than exp
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	bne   $t0, 1, .L145
+			# LESS THAN OR EQUAL
+	lw    $t0, -12($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	ble   $t0, $t1, .L149
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	j     .L150
+.L149:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L150:		#  exit greater than exp
+	b     .L146		#Exit and exp
+.L145:		# return false
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+.L146:		# Exit And expression
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L151:	.asciiz " : 0\n"
+	.text
+	la    $t0, .L151
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	addu  $sp, $sp, 0
+.L137:
 			# Assign
 			# MINUS
 			# TIMES
@@ -1865,9 +2110,9 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L145:	.asciiz " : 200\n"
+.L152:	.asciiz " : 200\n"
 	.text
-	la    $t0, .L145
+	la    $t0, .L152
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1881,7 +2126,7 @@ _start:		# add __start for main only
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L146
+	bne   $t0, $t1, .L153
 	subu  $sp, $sp, 4
 			# Assign
 	li    $t0, 10
@@ -1936,16 +2181,17 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L147:	.asciiz " : 210\n"
+.L154:	.asciiz " : 210\n"
 	.text
-	la    $t0, .L147
+	la    $t0, .L154
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L146:		#  Skip if statment
+	addu  $sp, $sp, 4
+.L153:		#  Skip if statment
 			# If statement
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
@@ -1953,7 +2199,7 @@ _start:		# add __start for main only
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L148
+	bne   $t0, $t1, .L155
 	subu  $sp, $sp, 8
 			# If statement
 	li    $t0, 1
@@ -1962,7 +2208,7 @@ _start:		# add __start for main only
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 1
-	bne   $t0, $t1, .L149
+	bne   $t0, $t1, .L156
 	subu  $sp, $sp, 4
 			# Assign
 	li    $t0, 1
@@ -2060,22 +2306,24 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L150:	.asciiz " : 6\n"
+.L157:	.asciiz " : 6\n"
 	.text
-	la    $t0, .L150
+	la    $t0, .L157
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L149:		#  Skip if statment
-.L148:		#  Skip if statment
+	addu  $sp, $sp, 4
+.L156:		#  Skip if statment
+	addu  $sp, $sp, 8
+.L155:		#  Skip if statment
 			# WRITE
 	li    $t0, 1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	jal   _nestedFunc
+	jal   _callFuncInFunc
 	sw    $v0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -2084,9 +2332,28 @@ _start:		# add __start for main only
 	syscall
 			# WRITE
 	.data
-.L151:	.asciiz " : 6\n"
+.L158:	.asciiz " : 10\n"
 	.text
-	la    $t0, .L151
+	la    $t0, .L158
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+			# WRITE
+	jal   _conditionalInFunc
+	sw    $v0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+			# WRITE
+	.data
+.L159:	.asciiz " : 1\n"
+	.text
+	la    $t0, .L159
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP

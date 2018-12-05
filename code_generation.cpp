@@ -365,6 +365,7 @@ bool IfStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
 	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	myStmts->codeGen(backend);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	backend->genLabel(exit, " Skip if statment");
 	return true;
 }
@@ -379,10 +380,12 @@ bool IfElseStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, elseB);
 	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
 	myStmtsT->codeGen(backend);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
 	backend->generate("j", exit);
 	backend->genLabel(elseB, " else portion statment");
 	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsF->sizeOfDecls()));
 	myStmtsF->codeGen(backend);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDeclsT->sizeOfDecls()));
 	backend->genLabel(exit);
 	return true;
 }
@@ -398,6 +401,7 @@ bool WhileStmtNode::codeGen(LilC_Backend* backend) {
 	backend->generate("bne", LilC_Backend::T0, LilC_Backend::T1, exit);
 	backend->generate("subu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	myStmts->codeGen(backend);
+	backend->generate("addu", LilC_Backend::SP, LilC_Backend::SP, std::to_string(myDecls->sizeOfDecls()));
 	backend->generate("j", start);
 	backend->genLabel(exit, " exit for while loop");
 	return true;
